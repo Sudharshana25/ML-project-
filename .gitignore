@@ -1,0 +1,38 @@
+# --- Python / Backend ---
+backend/venv/
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+# Ignore large ML models if they are over 50MB
+*.pkl
+*.h5
+*.onnx
+
+# --- React / Frontend ---
+frontend/node_modules/
+node_modules/
+frontend/dist/
+frontend/build/
+.eslintcache
+# Vite/React metadata
+.vite/
+
+# --- Environment & Secret Keys ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Data ---
+# If your CSV is huge, uncomment the line below
+*.csv
