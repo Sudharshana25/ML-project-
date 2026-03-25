@@ -16,19 +16,18 @@ class TrainResult:
 
 def _prepare_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     df = df.copy()
-    # 1. Parse dates properly
+    # Ensure correct date parsing
     df["date"] = pd.to_datetime(df["date_1"], dayfirst=True)
     
-    # 2. Extract detailed time features
+    # Extract features including Year and Temperature
     df["year"] = df["date"].dt.year
     df["month"] = df["date"].dt.month
     df["day"] = df["date"].dt.day
     df["weekday"] = df["date"].dt.weekday
 
-    # 3. Include Temperature and Year (Crucial for accuracy)
     features = ["year", "month", "day", "weekday", "temp2_ave(c)"]
     
-    # Drop rows where critical data is missing
+    # Clean data
     df = df.dropna(subset=features + ["total_demand(mw)"])
     
     X = df[features]
@@ -42,18 +41,21 @@ def load_or_train_model(model_path: str = "model.pkl") -> tuple[XGBRegressor, Tr
     if model_file.exists():
         return joblib.load(model_file), None
 
-    # Load and Train
+    # Load dataset from the same folder
     df = pd.read_csv(backend_dir / "elect demand.csv")
     X, y = _prepare_features(df)
+    
+    # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
 
-    # Use more estimators and deeper trees for better learning
+    # Improved model parameters to reduce error
     model = XGBRegressor(
         n_estimators=1000, 
         learning_rate=0.03, 
         max_depth=6, 
-        random_state=42,
-        objective="reg:squarederror"
+        subsample=0.8,
+        colsample_bytree=0.8,
+        random_state=42
     )
     model.fit(X_train, y_train)
     
@@ -73,8 +75,3 @@ def build_features_for_date(date_str: str, temp: float) -> pd.DataFrame:
         "weekday": dt.weekday(),
         "temp2_ave(c)": temp
     }])
-
-if __name__ == "__main__":
-    model, metrics = load_or_train_model()
-    if metrics:
-        print(f"✅ Training complete. MAE: {metrics.mae:.2f} MW")
